@@ -22,7 +22,6 @@ class Blockchain(object):
         :param previous_hash: (Optional) <str> Hash of previous Block
         :return: <dict> New Block
         """
-        # Here, block is a Dictionary - a hashtable made up of an array of linked lists
         block = {
             'index': len(self.chain) + 1,
             'timestamp': time(),
@@ -113,8 +112,11 @@ class Blockchain(object):
         """
         guess = f'{block_string}{proof}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
-        # TODO: change back to 6 zeros, return True
-        return guess_hash[:3] == "000"
+        # TODO TODO TODO TODO change back to 6 zeros TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+        if guess_hash[:3] == "000":
+            return True
+        else:
+            return False
 
     def valid_chain(self, chain):
         """
@@ -222,6 +224,12 @@ def full_chain():
     }
     return jsonify(response), 200
 
+@app.route('/last_block', methods=['GET'])
+def last_block():
+    response = {
+        "last block": blockchain.chain[-1]
+    }
+    return jsonify(response), 200
 
 # Run the program on port 5000
 if __name__ == '__main__':
