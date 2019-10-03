@@ -16,7 +16,7 @@ Modify the server we created to:
 
 *Client Mining*
 Create a client application that will:
-* Request the latest block from the `last_block` endpoint on the server
+<!-- * Request the latest block from the `last_block` endpoint on the server -->
 <!-- * Run the `proof_of_work` function until a valid proof is found, validating or rejecting each attempt -->
 * Print messages indicating that this has started and finished.  (Stretch: Add a timer)
 * Modify it to generate proofs with *6* leading zeroes.   <<<<<<<<<<< DO LAST >>>>>>>>>>>
