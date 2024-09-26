@@ -22,7 +22,7 @@ class Blockchain(object):
         :param previous_hash: (Optional) <str> Hash of previous Block
         :return: <dict> New Block
         """
-
+        # Here, block is a Dictionary - a hashtable made up of an array of linked lists
         block = {
             'index': len(self.chain) + 1,
             'timestamp': time(),
@@ -66,10 +66,10 @@ class Blockchain(object):
 
 
         # json.dumps converts json into a string
-        # hashlib.sha246 is used to createa hash
+        # hashlib.sha246 is used to create a hash
         # It requires a `bytes-like` object, which is what
         # .encode() does.  It convertes the string to bytes.
-        # We must make sure that the Dictionary is Ordered,
+        # sort_keys=True because we must make sure that the Dictionary is Ordered,
         # or we'll have inconsistent hashes
 
         block_string = json.dumps(block, sort_keys=True).encode()
@@ -92,9 +92,12 @@ class Blockchain(object):
         zeroes
         :return: A valid proof for the provided block
         """
-        # TODO
-        pass
+        block_string = json.dumps(block, sort_keys=True).encode()
         # return proof
+        proof = 0
+        while self.valid_proof(block_string, proof) is False:
+            proof += 1
+        return proof
 
     @staticmethod
     def valid_proof(block_string, proof):
@@ -108,9 +111,10 @@ class Blockchain(object):
         correct number of leading zeroes.
         :return: True if the resulting hash is a valid proof, False otherwise
         """
-        # TODO
-        pass
-        # return True or False
+        guess = f'{block_string}{proof}'.encode()
+        guess_hash = hashlib.sha256(guess).hexdigest()
+        # TODO: change back to 6 zeros, return True
+        return guess_hash[:3] == "000"
 
     def valid_chain(self, chain):
         """
@@ -129,11 +133,20 @@ class Blockchain(object):
             print(f'{prev_block}')
             print(f'{block}')
             print("\n-------------------\n")
-            # Check that the hash of the block is correct
-            # TODO: Return false if hash isn't correct
+            # Check that the hash of the block is correct 
+            # bracket notation when accessing items in a dictionary
+            if block['previous_hash'] != self.hash(prev_block):
+                print(f"Invalid previous has on block {current_index}")
+                # Return false if hash isn't correct
+                return False
 
             # Check that the Proof of Work is correct
-            # TODO: Return false if proof isn't correct
+            block_string = json.dumps(block, sort_keys=True).encode()
+            # If it doesn't pass valid_proof, is isn't a valid chain
+            if not self.valid_proof(block_string, block['proof']):
+                print(f"Found invalid proof on block {current_index}")
+                # Return false if proof isn't correct
+                return False
 
             prev_block = block
             current_index += 1
@@ -154,16 +167,21 @@ blockchain = Blockchain()
 @app.route('/mine', methods=['GET'])
 def mine():
     # We run the proof of work algorithm to get the next proof...
-    proof = blockchain.proof_of_work()
+    proof = blockchain.proof_of_work(blockchain.last_block)
 
     # We must receive a reward for finding the proof.
-    # TODO:
     # The sender is "0" to signify that this node has mine a new coin
     # The recipient is the current node, it did the mining!
     # The amount is 1 coin as a reward for mining the next block
-
-    # Forge the new Block by adding it to the chain
-    # TODO
+    blockchain.new_transaction(
+        sender="0",
+        recipient=node_identifier,
+        amount=1,
+    )
+    # Forge the new Block by hashing the last block and 
+    previous_hash = blockchain.hash(blockchain.last_block)
+    # Adding it to the chain
+    block = blockchain.new_block(proof, previous_hash)
 
     # Send a response with the new block
     response = {
@@ -197,7 +215,10 @@ def new_transaction():
 @app.route('/chain', methods=['GET'])
 def full_chain():
     response = {
-        # TODO: Return the chain and its current length
+        # Return the chain and its current length
+        'length': len(blockchain.chain),
+        'chain': blockchain.chain,
+        
     }
     return jsonify(response), 200
 
